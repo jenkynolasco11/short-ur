@@ -1,0 +1,25 @@
+{
+  "name": "short-url",
+  "version": "1.0.0",
+  "description": "Shortener URL service",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jenkynolasco11/short_url.git"
+  },
+  "author": "Jenky Nolasco",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jenkynolasco11/short_url/issues"
+  },
+  "homepage": "https://github.com/jenkynolasco11/short_url#readme",
+  "dependencies": {
+    "express": "^4.14.0",
+    "mongodb": "^2.2.10",
+    "mongoose": "^4.6.4"
+  }
+}
