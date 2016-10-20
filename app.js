@@ -22,58 +22,66 @@ db.on('error',function(error){
 
 app.param('url',function(req,res,next,url){
   // http regex : /https?:\/\/[\w.-]+\:?\d{0,4}/
-  req.params['tempurl'] = url;
-  ShortURL.findOne({"url":url},function(err,url){
-    if (err) next(err);   // Send the error to be handled
-    if(url){
-      req.params.tinyurl = {
-      'original_url' : url.url,
-      'short_url' : url['short url']
-      };
-      next();
-    }
-    else {
-      var checkIfExists = function(retries){
-        var retries = retries || 0;
-        var randomNumber = +(Math.random() * 10000).toFixed(0);
-        // console.log('executing the demonical function...');
-        // The demonical function!!!
-        (function(num, callback, retries){
-          console.log('debug2');
-          // console.log('Here I am... Checking for your ID...');
-          ShortURL.findOne({'id':num},function(err,res){
-            if(err) next(err);
-            if(res) {
-              if(retries > 10) {
-                console.log('ERROR: The max of tries trying to find a unique ID was reached');
-                next('ERROR: The max of tries trying to find a unique ID was reached');
+  if(!url) {
+    res.send('Path cannot be empty.');
+    timeout(function(){
+      res.redirect('/');
+    },3000);
+  }
+  else {
+    req.params['tempurl'] = url;
+    ShortURL.findOne({"url":url},function(err,url){
+      if (err) next(err);   // Send the error to be handled
+      if(url){
+        req.params.tinyurl = {
+        'original_url' : url.url,
+        'short_url' : url['short url']
+        };
+        next();
+      }
+      else {
+        var checkIfExists = function(retries){
+          var retries = retries || 0;
+          var randomNumber = +(Math.random() * 10000).toFixed(0);
+          // console.log('executing the demonical function...');
+          // The demonical function!!!
+          (function(num, callback, retries){
+            console.log('debug2');
+            // console.log('Here I am... Checking for your ID...');
+            ShortURL.findOne({'id':num},function(err,res){
+              if(err) next(err);
+              if(res) {
+                if(retries > 10) {
+                  console.log('ERROR: The max of tries trying to find a unique ID was reached');
+                  next('ERROR: The max of tries trying to find a unique ID was reached');
+                }
+                // console.log('Here I am... Calling myself back again...');
+
+                callback(++retries);
               }
-              // console.log('Here I am... Calling myself back again...');
+              else {
+                // console.log('Here I am! getting you a new ID');
+                var tinyurl = {
+                  "id" : num,
+                  "url" : req.params['tempurl'],
+                  "short url" : req.protocol + '://' + req.get('host') + '/' + num
+                };
 
-              callback(++retries);
-            }
-            else {
-              // console.log('Here I am! getting you a new ID');
-              var tinyurl = {
-                "id" : num,
-                "url" : req.params['tempurl'],
-                "short url" : req.protocol + '://' + req.get('host') + '/' + num
-              };
+                var newshorturl = new ShortURL(tinyurl);
+                newshorturl.save(function(err){
+                  if (err) next(err);
+                  req.params['tinyurl'] = tinyurl;
+                  next();
+                });
+              }
+            });
+          })(randomNumber, checkIfExists);
+        };
 
-              var newshorturl = new ShortURL(tinyurl);
-              newshorturl.save(function(err){
-                if (err) next(err);
-                req.params['tinyurl'] = tinyurl;
-                next();
-              });
-            }
-          });
-        })(randomNumber, checkIfExists);
-      };
-
-      checkIfExists(0);
-    }
-  });
+        checkIfExists(0);
+      }
+    });
+  }
 });
 
 app.param('tinyurl',function(req,res,next,tinyurl){
@@ -92,7 +100,12 @@ app.get('/new/:url(*)',function(req,res){
 
 app.get('/:tinyurl',function(req,res){
   if(req.params.redirecturl.url) res.redirect(req.params.redirecturl.url);
-  else res.end('');
+  else res.send('No url matched this path.');
+
+  timeout(function(){
+    res.redirect('/');
+  },3000);
+
 });
 
 app.get('/', function(req,res){
