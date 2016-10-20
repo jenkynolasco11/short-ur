@@ -1,0 +1,27 @@
+doctype hmtl
+html
+  head
+    title URL Tiny Parser
+  body
+    h1 URL Tiny Parser
+    p
+      h2 How to use it?
+      blockquote
+        ul(style='list-style : none; padding: 10px 20px')
+          li
+            p
+              h3 To create a short url:
+              code  #{url}/new/https://bar.com
+              br
+              code  #{url}/new/http://foo.com:80
+              br
+              h3 The output:
+              code  {'original_url': 'https://bar.com', 'short_url' : '#{url}/5678' }
+              br
+              code  {'original_url': 'http://foo.com:80', 'short_url' : '#{url}/1234' }
+          li
+            p
+              h3 Usage:
+              code #{url}/1234
+              h3 It will redirect you to:
+              code http://foo.com:80
