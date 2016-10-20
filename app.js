@@ -3,6 +3,7 @@ var express = require('express');
 var app = express();
 var port = process.env.PORT;
 
+'use strict';
 // app.use('/static',express.static(__direname));
 app.set('view engine', 'pug');
 app.set('views', './');
@@ -23,10 +24,8 @@ db.on('error',function(error){
 app.param('url',function(req,res,next,url){
   // http regex : /https?:\/\/[\w.-]+\:?\d{0,4}/
   if(!url) {
-    res.send('Path cannot be empty.');
-    timeout(function(){
-      res.redirect('/');
-    },3000);
+    // res.send('Path cannot be empty.');
+    res.redirect('/');
   }
   else {
     req.params['tempurl'] = url;
@@ -46,7 +45,6 @@ app.param('url',function(req,res,next,url){
           // console.log('executing the demonical function...');
           // The demonical function!!!
           (function(num, callback, retries){
-            console.log('debug2');
             // console.log('Here I am... Checking for your ID...');
             ShortURL.findOne({'id':num},function(err,res){
               if(err) next(err);
@@ -86,26 +84,26 @@ app.param('url',function(req,res,next,url){
 
 app.param('tinyurl',function(req,res,next,tinyurl){
   ShortURL.findOne({'id': tinyurl },function(err,url){
-    if (err) next(err);     // Send the error to be handled
-
-    req.params['redirecturl'] = url || {};
+    if (err){
+      next(err);
+    }     // Send the error to be handled
+    req.redirecturl = url || {};
     next();
   });
 });
 
 app.get('/new/:url(*)',function(req,res){
   if(req.params.tinyurl) res.end(JSON.stringify(req.params.tinyurl));
-  res.end('null');
+  else res.redirect('/');
 });
 
 app.get('/:tinyurl',function(req,res){
-  if(req.params.redirecturl.url) res.redirect(req.params.redirecturl.url);
-  else res.send('No url matched this path.');
-
-  timeout(function(){
-    res.redirect('/');
-  },3000);
-
+  if(req.redirecturl.url) res.redirect(
+    req.redirecturl.url.indexOf('http://')!= -1 ?
+    req.redirecturl.url :
+    'http://' + req.redirecturl.url
+  );
+  else res.redirect('/');
 });
 
 app.get('/', function(req,res){
